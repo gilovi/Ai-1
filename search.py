@@ -134,7 +134,7 @@ def depthFirstSearch(problem):
 
 def breadthFirstSearch(problem):
   "Search the shallowest nodes in the search tree first. [p 81]"
-  return search(problem, util.PriorityQueueWithFunction(lambda node: node.price))
+  return search(problem, util.Queue())
 
 def uniformCostSearch(problem):
   "Search the node of least total cost first. "
