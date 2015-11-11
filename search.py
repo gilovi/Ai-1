@@ -72,7 +72,7 @@ class Node():
     """
     def __init__(self, position, move = '', price = 0, father = None):
 
-        self.position = position
+        self.state = position
         self.move = move
         self.price = price
         self.father = father
@@ -88,25 +88,34 @@ def find_path(node):
 
 def search (problem , data_struct ):
 
+  c = util.Counter()
   start_node = Node(problem.getStartState())
-  nodes = {start_node.position: start_node}
+  nodes = {start_node.state: start_node} # maps a state to a node
+  c[start_node.state] += 1
   data_struct.push(start_node)
   found_goal = None
   
   while not data_struct.isEmpty():
       curr_node = data_struct.pop()
-      if problem.isGoalState(curr_node.position):
+      c[curr_node.state] -= 1
+      if not curr_node.state : continue
+      if problem.isGoalState(curr_node.state):
         found_goal = curr_node
         break
-      successors = [ succ for succ in problem.getSuccessors(curr_node.position)]
+      successors = [ succ for succ in problem.getSuccessors(curr_node.state)]
       for succ in successors:
         new_node = Node(succ[0], succ[1], curr_node.price + succ[2], curr_node )
-        if new_node.position in nodes:
-            if nodes[new_node.position].price > new_node.price:
-                nodes[new_node.position] = new_node
-        else:
-          data_struct.push(new_node)
-          nodes[new_node.position] = new_node
+        if new_node.state in nodes:
+            if nodes[new_node.state].price <= new_node.price:
+                continue
+            if c[new_node.state] > 0:
+                nodes[new_node.state].state = False # ignore it
+                data_struct.push(new_node) # add new price to dast
+            nodes[new_node.state] = new_node # the shortest path is through here.
+
+        else: # the state is unknown
+            data_struct.push(new_node)
+            nodes[new_node.state] = new_node
 
 
   if data_struct.isEmpty() and not found_goal:
@@ -149,9 +158,8 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
   "Search the node that has the lowest combined cost and heuristic first."
-  "*** YOUR CODE HERE ***"
-  util.raiseNotDefined()
 
+  return search(problem, util.PriorityQueueWithFunction(lambda node: node.price + heuristic(node.state, problem)))
   
 # Abbreviations
 bfs = breadthFirstSearch
