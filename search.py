@@ -70,7 +70,7 @@ class Node():
     """
     a node in a graph
     """
-    def __init__(self, position, move = '', price = 0, father = None):
+    def __init__(self, position, move = [], price = 0, father = None):
 
         self.position = position
         self.move = move
@@ -96,24 +96,26 @@ def search (problem , data_struct ):
   while not data_struct.isEmpty():
       curr_node = data_struct.pop()
       if problem.isGoalState(curr_node.position):
-        found_goal = curr_node
-        break
-      successors = [ succ for succ in problem.getSuccessors(curr_node.position)]
-      for succ in successors:
-        new_node = Node(succ[0], succ[1], curr_node.price + succ[2], curr_node )
-        if new_node.position in nodes:
-            if nodes[new_node.position].price > new_node.price:
-                nodes[new_node.position] = new_node
+        return curr_node.move
+        #found_goal = curr_node
+         
+      for state, move, price in [ succ for succ in problem.getSuccessors(curr_node.position)] :
+        #new_node = Node(state, curr_node.move + move, curr_node.price + price, curr_node )
+        if state in nodes:
+            if nodes[state].price > price + curr_node.price:
+                n = nodes[state]
+                n.move, n.price, n.father = curr_node.move + [move], curr_node.price + price, curr_node
         else:
+          new_node = Node(state, curr_node.move + [move], curr_node.price + price, curr_node)
           data_struct.push(new_node)
-          nodes[new_node.position] = new_node
+          nodes[state] = new_node
 
 
   if data_struct.isEmpty() and not found_goal:
     print('can\'t find a solution.')
     exit(1)
 
-  return find_path(found_goal)
+  #return find_path(found_goal)
 
 
 def depthFirstSearch(problem):
@@ -149,8 +151,8 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
   "Search the node that has the lowest combined cost and heuristic first."
-  "*** YOUR CODE HERE ***"
-  util.raiseNotDefined()
+  return search(problem, util.PriorityQueueWithFunction(lambda node: node.price + heuristic(node.position, problem)))
+  
 
   
 # Abbreviations
