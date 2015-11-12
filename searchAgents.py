@@ -282,11 +282,11 @@ class CornersProblem(search.SearchProblem):
     
   def getStartState(self):
     "Returns the start state (in your state space, not the full Pacman state space)"
-    return self.corners + (self.startingPosition ,)
+    return (self.startingPosition,)
     
   def isGoalState(self, state):
     "Returns whether this search state is a goal state of the problem"
-    return len(state) == 1 and state in corners
+    return set(state) == set(self.corners)
 
        
   def getSuccessors(self, state):
@@ -320,7 +320,8 @@ class CornersProblem(search.SearchProblem):
         if not self.walls[nextx][nexty]:
           nextState = ((nextx, nexty),)
           cost = 1
-          successors.append( (((tuple(filter(lambda x: x != nextState , state[:-1]))  + (nextState))) , action, cost) ) 
+          found_corners = sorted(filter(lambda x: x in self.corners, state[:-1] + nextState))
+          successors.append( ((tuple(found_corners)  + nextState) , action, cost) )
 
       
     self._expanded += 1
@@ -357,8 +358,7 @@ def cornersHeuristic(state, problem):
   this heuristic to receive full credit.)
   """
   corners = problem.corners # These are the corner coordinates
-  #corners = list(set(corners) -  set(filter(lambda x: x in corners ,state))) # throw visited corners
-  corners = filter(lambda x: x in corners ,state)
+  corners = list(filter(lambda x: x not in state, corners)) # throw visited corners
   if not corners : return 0
   walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
   position =  state[-1]
