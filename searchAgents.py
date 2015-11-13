@@ -282,11 +282,11 @@ class CornersProblem(search.SearchProblem):
     
   def getStartState(self):
     "Returns the start state (in your state space, not the full Pacman state space)"
-    return (self.startingPosition,)
+    return (tuple(set(self.corners)),(self.startingPosition))
     
   def isGoalState(self, state):
     "Returns whether this search state is a goal state of the problem"
-    return set(state) == set(self.corners)
+    return len(state[0]) == 0
 
        
   def getSuccessors(self, state):
@@ -318,10 +318,9 @@ class CornersProblem(search.SearchProblem):
         dx, dy = Actions.directionToVector(action)
         nextx, nexty = int(x + dx), int(y + dy)
         if not self.walls[nextx][nexty]:
-          nextState = ((nextx, nexty),)
+          nextState = (nextx, nexty)
           cost = 1
-          found_corners = sorted(filter(lambda x: x in self.corners, state[:-1] + nextState))
-          successors.append( ((tuple(found_corners)  + nextState) , action, cost) )
+          successors.append( ( (tuple(set(state[0]) - set((nextState,)) ) ,(nextState)) , action, cost ) )
 
       
     self._expanded += 1
@@ -357,18 +356,18 @@ def cornersHeuristic(state, problem):
   it should be admissible.  (You need not worry about consistency for
   this heuristic to receive full credit.)
   """
-  corners = problem.corners # These are the corner coordinates
-  corners = list(filter(lambda x: x not in state, corners)) # throw visited corners
-  if not corners : return 0
+  corners = set(state[0]) # These are the corner coordinates
+  #corners = list(filter(lambda x: x not in state, corners)) # throw visited corners
+  #if not corners : return 0
   walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
-  position =  state[-1]
+  position = state[-1]
 
   xy1 = position
   h = 0
   # the manhattan huristics for closest corner
-  for point in corners:
-    if xy1 in corners: corners.remove(xy1)
-    h, xy1,  = min([(manhattan_dist(xy1, xy2) + h, xy2) for xy2 in corners ] )
+  while len(corners) > 1:
+    corners = corners - set((xy1,))
+    h, xy1, = min([(manhattan_dist(xy1, xy2) + h, xy2) for xy2 in corners ] )
     #h2 = sum(sorted([manhattan_dist(*edge) for edge in combinations(corners, 2)  ])[: len(corners) - 1])
 
   return h
